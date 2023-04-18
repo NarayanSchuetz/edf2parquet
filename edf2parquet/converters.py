@@ -7,7 +7,9 @@ import pyarrow.parquet as pq
 
 import json
 import os.path
-from typing import Dict, Optional
+from typing import Dict, Optional, Union, Tuple
+
+import pytz
 
 
 class EdfToParquetConverter:
@@ -17,7 +19,9 @@ class EdfToParquetConverter:
             edf_file_path: str,
             datetime_index=True,
             default_signal_dtype=pa.float32(),
-            parquet_output_dir: Optional[str] = None) -> None:
+            parquet_output_dir: Optional[str] = None,
+            compression_codec: Union[str, dict] = "NONE",
+            local_timezone: Optional[Tuple[pytz.BaseTzInfo, pytz.BaseTzInfo]] = None) -> None:
         """
         Args:
             edf_file_path: the absolute path to the EDF/EDF+ file.
@@ -25,11 +29,22 @@ class EdfToParquetConverter:
                 otherwise no index will be set.
             default_signal_dtype: the data type to use for the signal in the parquet file(s).
             parquet_output_dir: Optional. If specified, the parquet file(s) are stored in the specified directory.
+            compression_codec: Optional. If specified, the parquet file(s) are compressed using the specified codec.
+                Valid values are {‘NONE’, ‘SNAPPY’, ‘GZIP’, ‘BROTLI’, ‘LZ4’, ‘ZSTD’}, or a dict specifying a
+                compression codec on a per-column basis (see PyArrow docs).
+            local_timezone: Optional. A tuple of pytz timezones. The first entry identifies the physical timezone
+                the EDF file was recorded in, the second entry identifies the timezone the EDF file startdate is in.
+                E.g. (pytz.timezone('Europe/Berlin'), pytz.timezone('UTC')) for a file recorded in Berlin, but where
+                the startdate has already been converted to UTC. If local_timezone is specified and datetime_index is
+                True, the DatetimeIndex is converted to UTC before being stored in the parquet file(s), while the
+                recording timezone is present in the metadata.
         """
         self._datetime_index = datetime_index
         self._default_signal_dtype = default_signal_dtype
         self._edf_file = pyedflib.EdfReader(edf_file_path)
         self._parquet_output_dir = parquet_output_dir
+        self._compression_codec = compression_codec
+        self._local_timezone = local_timezone
 
     def __del__(self) -> None:
         self._edf_file.close()
@@ -59,7 +74,9 @@ class EdfToParquetConverter:
             if isinstance(parquet_output_dir, str):
                 os.makedirs(parquet_output_dir, exist_ok=True)
                 for signal_label, table in tables.items():
-                    pq.write_table(table, os.path.join(parquet_output_dir, f"{signal_label}.parquet"))
+                    pq.write_table(table,
+                                   os.path.join(parquet_output_dir, f"{signal_label}.parquet"),
+                                   compression=self._compression_codec)
             else:
                 return tables
 
@@ -76,9 +93,15 @@ class EdfToParquetConverter:
 
         dfs = self._extract_edf()
         file_header = {str(k): str(v) for k, v in edf_file.getHeader().items()}
-        file_header_metadata = {
-            "edf_file_header".encode(): json.dumps(file_header).encode()
-        }
+
+        if self._local_timezone is not None:
+            file_header["tz_recording"] = str(self._local_timezone[0])
+            file_header["tz_startdatetime"] = str(self._local_timezone[1])
+        else:
+            file_header["tz_recording"] = ""
+            file_header["tz_startdatetime"] = ""
+
+        file_header_metadata = {"edf_file_header".encode(): json.dumps(file_header).encode()}
 
         tables = {}
         for i in range(n_signals):
@@ -124,8 +147,16 @@ class EdfToParquetConverter:
             freq_str = '{}N'.format(int(1e9 / sampling_rate))
 
             if self._datetime_index:
+                if self._local_timezone is not None:
+                    start_datetime = pd.Timestamp(edf_file.getStartdatetime())\
+                        .tz_localize(self._local_timezone[1])\
+                        .tz_convert(pytz.UTC)\
+                        .tz_localize(None)  # remove tzinfo, tends to be safer
+                else:
+                    start_datetime = pd.Timestamp(edf_file.getStartdatetime())
+
                 time_points = pd.date_range(
-                    start=pd.Timestamp(edf_file.getStartdatetime()),
+                    start=start_datetime,
                     periods=n_samples,
                     freq=freq_str,
                     inclusive='left'
@@ -135,4 +166,5 @@ class EdfToParquetConverter:
                 data[signal_labels[i]] = df
             else:
                 data[signal_labels[i]] = pd.DataFrame(signal_data, columns=[signal_labels[i]])
+
         return data

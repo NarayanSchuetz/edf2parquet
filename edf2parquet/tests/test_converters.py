@@ -5,6 +5,7 @@ import shutil
 
 import pandas as pd
 import pyarrow.parquet as pq
+import pytz
 import requests
 
 
@@ -13,7 +14,7 @@ from edf2parquet.converters import EdfToParquetConverter
 
 class Test_Integration_EdfToParquetConverter:
     __URL = 'http://paulbourke.net/dataformats/edf/test.edf'
-    __FILE_NAME = 'temp_test.edf'
+    __FILE_NAME = 'test_resources/temp_test.edf'
 
     def setup_method(self, test_method):
         file_name = self.__FILE_NAME
@@ -31,9 +32,9 @@ class Test_Integration_EdfToParquetConverter:
             print("Error: Unable to download the file skip test or add a new valid file url. "
                   "Status code:", response.status_code)
 
-    def teardown_method(self, test_method):
-        if os.path.isfile(self.__FILE_NAME):
-            os.remove(self.__FILE_NAME)
+    # def teardown_method(self, test_method):
+    #     if os.path.isfile(self.__FILE_NAME):
+    #         os.remove(self.__FILE_NAME)
 
     def test_integration_convert_edf_to_pyarrow_tables(self):
         converter = EdfToParquetConverter(self.__FILE_NAME, datetime_index=True)
@@ -62,7 +63,11 @@ class Test_Integration_EdfToParquetConverter:
 
     def test_integration_end2end_with_outputdir(self):
         output_dir = "temp_output_dir"
-        converter = EdfToParquetConverter(self.__FILE_NAME, datetime_index=True, parquet_output_dir=output_dir)
+        converter = EdfToParquetConverter(self.__FILE_NAME,
+                                          datetime_index=True,
+                                          parquet_output_dir=output_dir,
+                                          compression_codec="GZIP",
+                                          local_timezone=(pytz.timezone("Europe/Paris"), pytz.timezone("Europe/Paris")))
         converter.convert()
 
         # Check if the output directory was created
@@ -82,9 +87,10 @@ class Test_Integration_EdfToParquetConverter:
 
         file_metadata = json.loads(table.schema.metadata[b'edf_file_header'])
         assert file_metadata['birthdate'] == 'F'
+        assert file_metadata['tz_recording'] == 'Europe/Paris'
+        assert file_metadata['tz_startdatetime'] == 'Europe/Paris'
 
         assert isinstance(table.to_pandas().index, pd.DatetimeIndex)
 
         # Clean up the output directory
         shutil.rmtree(output_dir)
-

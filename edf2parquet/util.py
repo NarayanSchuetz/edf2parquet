@@ -1,4 +1,4 @@
-from typing import Union, Dict
+from typing import Union, Dict, Any
 
 
 def _try_float(value):
@@ -15,7 +15,7 @@ def _try_int(value):
         return _try_float(value)
 
 
-def string_to_python_data_types(input_str_dict: Dict[str, str]) -> Dict[str, Union[str, int, float]]:
+def string_to_python_data_types(input_str_dict: Dict[str, str]) -> Dict[str, Any]:
     """
     Convert a dictionary of string values to their corresponding Python numeric data types if possible.
 
