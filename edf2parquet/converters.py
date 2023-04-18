@@ -115,7 +115,7 @@ class EdfToParquetConverter:
                 "edf_signal_header".encode(): json.dumps({str(k): str(v) for k, v in
                                                           edf_file.getSignalHeader(i).items()}).encode()
             }
-            schema = schema.add_metadata(metadata)
+            schema = schema.with_metadata(metadata)
             field_names = schema.names
             existing_fields = [schema.field(field_name) for field_name in field_names]
             new_fields = [
