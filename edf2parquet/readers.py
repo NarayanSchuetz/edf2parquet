@@ -83,7 +83,7 @@ class ParquetEdfReader:
         """
         return [self.get_signal_header(signal_label) for signal_label in self.get_signal_labels()]
 
-    def get_file_header(self) -> dict:
+    def get_file_header(self) -> Dict[str, Any]:
         """
         Returns the file header.
 
