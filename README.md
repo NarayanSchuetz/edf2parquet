@@ -1,6 +1,8 @@
 # edf2parquet
 Simple utility package to convert EDF/EDF+ files into Apache Parquet format 
 while preserving the EDF file header information and signal headers metadata information.
+Currently, each signal is stored as a separate parquet file, with the option to automatically
+add a pandas readable DatetimeIndex.
 
 ## Installation
 
