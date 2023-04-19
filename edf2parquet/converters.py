@@ -25,13 +25,18 @@ class EdfToParquetConverter:
         """
         Args:
             edf_file_path: the absolute path to the EDF/EDF+ file.
+
             datetime_index: if True, the DatetimeIndex is inferred from the EDF startdate and sampling frequency,
                 otherwise no index will be set.
+
             default_signal_dtype: the data type to use for the signal in the parquet file(s).
+
             parquet_output_dir: Optional. If specified, the parquet file(s) are stored in the specified directory.
+
             compression_codec: Optional. If specified, the parquet file(s) are compressed using the specified codec.
                 Valid values are {‘NONE’, ‘SNAPPY’, ‘GZIP’, ‘BROTLI’, ‘LZ4’, ‘ZSTD’}, or a dict specifying a
                 compression codec on a per-column basis (see PyArrow docs).
+
             local_timezone: Optional. A tuple of pytz timezones. The first entry identifies the physical timezone
                 the EDF file was recorded in, the second entry identifies the timezone the EDF file startdate is in.
                 E.g. (pytz.timezone('Europe/Berlin'), pytz.timezone('UTC')) for a file recorded in Berlin, but where
@@ -59,8 +64,6 @@ class EdfToParquetConverter:
         parquet file metadata.
         Furthermore, all signals are stored as a time-series with DatetimeIndex (inferred from the EDF startdate and
         sampling frequency).
-
-        Args:
 
         Returns:
             None if parquet_output_dir is specified (parquet files are written to this directory, otherwise a dictionary
