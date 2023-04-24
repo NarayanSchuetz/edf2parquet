@@ -83,9 +83,6 @@ class EdfToParquetConverter:
             else:
                 return tables
 
-        except Exception as e:
-            raise e
-
         finally:
             edf_file.close()
 

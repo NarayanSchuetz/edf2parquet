@@ -41,13 +41,16 @@ df = pd.read_parquet("edf2parquet/tests/test_resources/EEG T5-LE.parquet")
 #### Using the provided ParquetEdfReader directly
 Using the provided ParquetEdfReader one may read back the EDF associated metadata and directly apply timezone 
 conversions given the information was provided during conversion.
+
 ```python
-from edf2parquet.readers import ParquetEdfReader
+from edf2parquet.readers import ParquetReader
+
 my_parquet_file_path = "edf2parquet/tests/test_resources/EEG T5-LE.parquet"
-reader = ParquetEdfReader(parquet_file_path=my_parquet_file_path)
+reader = ParquetReader(parquet_file_path=my_parquet_file_path)
 
 # the same as using pandas but with automatic timezone conversion from UTC to local timezone.
-df = reader.get_pandas_dataframe(set_timezone=True) # (Note that here we set a timezone which is different to when we used plain pandas)
+df = reader.get_pandas_dataframe(
+    set_timezone=True)  # (Note that here we set a timezone which is different to when we used plain pandas)
 
 # however, we cal also get EDF file header information.
 reader.get_file_header()
