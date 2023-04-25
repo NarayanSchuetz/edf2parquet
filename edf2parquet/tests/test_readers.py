@@ -1,5 +1,3 @@
-import datetime
-
 import pandas as pd
 import pyarrow as pa
 import pytest
@@ -83,7 +81,7 @@ class TestEdfReader:
         assert isinstance(df, pd.DataFrame)
         assert isinstance(df.index, pd.RangeIndex)
 
-    def test_get_pandas_dataframe_no_datetime_index(self, file_path):
+    def test_get_pandas_dataframe_no_timezone_set(self, file_path):
         reader = EdfReader(file_path, datetime_index=True, local_timezone=(pytz.timezone("Europe/Paris"),
                                                                            pytz.timezone("Europe/Paris")))
         df = reader.get_pandas_dataframe("EEG F3-LE", set_timezone=False)

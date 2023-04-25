@@ -174,7 +174,7 @@ class EdfReader:
             self._correct_edf_header()
             self._edf_file = pyedflib.EdfReader(self._edf_file_path)
 
-    def _signal_label_to_index(self, signal_label: str) -> int:
+    def signal_label_to_index(self, signal_label: str) -> int:
         """
         Returns the signal index for the given signal label.
 
@@ -208,9 +208,9 @@ class EdfReader:
 
         edf_file = self.edf_file
         data = {}
-        sampling_rate = edf_file.getSampleFrequency(self._signal_label_to_index(signal_labels[0]))
+        sampling_rate = edf_file.getSampleFrequency(self.signal_label_to_index(signal_labels[0]))
         for signal_label in signal_labels:
-            i = self._signal_label_to_index(signal_label)
+            i = self.signal_label_to_index(signal_label)
             if sampling_rate != edf_file.getSampleFrequency(i):
                 raise ValueError(f"Signal {signal_label} has a different sampling rate than the other signals.")
             data[signal_label] = edf_file.readSignal(i)
