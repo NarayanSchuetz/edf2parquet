@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages
 
 MAJOR = "0"
-MINOR = "0"
+MINOR = "1"
 PATCH = "1"
 
 _VERSION_TAG = "{MAJOR}.{MINOR}.{PATCH}".format(MAJOR=MAJOR, MINOR=MINOR, PATCH=PATCH)
@@ -14,7 +14,7 @@ with open("README.md", "r") as fh:
 def get_version():
     import subprocess
     commit_hash = str(subprocess.run(['git', 'rev-parse', 'HEAD'], stdout=subprocess.PIPE).stdout)[2:-3]
-    return '{VERSION_TAG}.{GIT_SHA}'.format(VERSION_TAG=_VERSION_TAG, GIT_SHA=commit_hash)
+    return '{VERSION_TAG}'.format(VERSION_TAG=_VERSION_TAG)
 
 
 setup(
