@@ -50,7 +50,7 @@ class EdfToParquetConverter:
         """
         self._datetime_index = datetime_index
         self._default_signal_dtype = default_signal_dtype
-        self._edf_file = pyedflib.EdfReader(edf_file_path)
+        self._edf_reader = EdfReader(edf_file_path)
         self._parquet_output_dir = parquet_output_dir
         self._compression_codec = compression_codec
         self._local_timezone = local_timezone
@@ -60,6 +60,10 @@ class EdfToParquetConverter:
 
     def __repr__(self) -> str:
         return f"EdfToParquetConverter({self._edf_file.getHeader()})"
+
+    @property
+    def _edf_file(self):
+        return self._edf_reader.edf_file
 
     def convert(self) -> Optional[Dict[str, pa.Table]]:
         """
@@ -241,7 +245,6 @@ class AdvancedEdfToParquetConverter(EdfToParquetConverter):
         """
         super().__init__(edf_file_path, datetime_index, default_signal_dtype, parquet_output_dir,
                          compression_codec, local_timezone)
-        self._edf_reader = EdfReader(edf_file_path)
         self._group_by_sampling_freq = group_by_sampling_freq
         self._exclude_signals = exclude_signals
         self._split_non_use_by_col = split_non_use_by_col

@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 MAJOR = "0"
 MINOR = "1"
-PATCH = "1"
+PATCH = "2"
 
 _VERSION_TAG = "{MAJOR}.{MINOR}.{PATCH}".format(MAJOR=MAJOR, MINOR=MINOR, PATCH=PATCH)
 
@@ -12,8 +12,8 @@ with open("README.md", "r") as fh:
 
 
 def get_version():
-    import subprocess
-    commit_hash = str(subprocess.run(['git', 'rev-parse', 'HEAD'], stdout=subprocess.PIPE).stdout)[2:-3]
+    # import subprocess
+    # commit_hash = str(subprocess.run(['git', 'rev-parse', 'HEAD'], stdout=subprocess.PIPE).stdout)[2:-3]
     return '{VERSION_TAG}'.format(VERSION_TAG=_VERSION_TAG)
 
 
@@ -30,9 +30,9 @@ setup(
     install_requires=[
         'pytest',
         'numpy',
-        'pandas',
+        'pandas>=2.0.0',
         'pyarrow',
-        'pyedflib==0.1.19',  # newer versions
+        'pyedflib>=0.1.32',
     ],
     setup_requires=[
         'pytest-runner',
